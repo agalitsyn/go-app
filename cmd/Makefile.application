@@ -1,0 +1,55 @@
+# Local dev commands
+
+.PHONY: install
+install:
+	go install .
+
+.PHONY: run
+run: install
+	goreman start
+
+.PHONY: test
+test:
+	go test -v .
+
+# Docker commands
+
+ifndef IMAGE
+$(error IMAGE not specified, did you forget to include some vars.mk?)
+endif
+
+.PHONY: build
+build: clean
+	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o $(BUILD_DIR)/$(APPLICATION) .
+
+.PHONY: clean
+clean:
+	-rm -r $(BUILD_DIR)
+
+.PHONY: docker-build
+docker-build: build
+	docker build --pull --rm --tag "$(IMAGE)" .
+
+.PHONY: docker-run
+docker-run:
+	docker run --rm --name "$(APPLICATION)" $(DOCKER_RUN_OPTS) "$(IMAGE)" $(DOCKER_RUN_ARGS)
+
+.PHONY: docker-clean-containers
+docker-clean-containers:
+	docker rm --force $$(docker ps --all --filter name="$(APPLICATION)" --quiet)
+
+.PHONY: docker-clean-images
+docker-clean-images:
+	docker rmi --force $$(docker images --quiet "$(IMAGE)")
+
+.PHONY: docker-push
+docker-push:
+	docker push "$(IMAGE)"
+
+.PHONY: docker-push-private
+docker-push-private:
+	ifndef REGISTRY
+		$(error REGISTRY not specified, did you forget to include some vars.mk?)
+	endif
+	docker tag "$(IMAGE)" "$(REGISTRY)/$(IMAGE)"
+	docker push "$(REGISTRY)/$(IMAGE)"
