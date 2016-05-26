@@ -13,9 +13,17 @@ $ deis login <URL>
 
 $ deis create <имя проекта>-<имя приложения>
 
+$ deis config:set HEALTHCHECK_URL=/healthz
+$ deis config:set HEALTHCHECK_INITIAL_DELAY=3
+$ deis config:set HEALTHCHECK_TIMEOUT=10
 $ deis config:set DATABASE_URL=postgres://<user>:<password>@<url>:<port>/<dbname>
 
-$ make release-staging
+$ make docker-build
+
+# Нужно уточнить в какой registry вы будете пушить образ
+$ IMAGE=my-app:latest REGISTRY=my-registry.private make docker-push-private
+
+$ deis pull <image>
 Creating build... o..
 
 $ deis info
