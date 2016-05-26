@@ -6,9 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/agalitsyn/goapi/handlers"
 	"github.com/julienschmidt/httprouter"
 	"github.com/stretchr/testify/assert"
-	"github.com/agalitsyn/goapi/handlers"
 )
 
 func doHTTPRequest(method, url string) *http.Response {

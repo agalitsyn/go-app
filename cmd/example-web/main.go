@@ -20,13 +20,13 @@ import (
 
 	_ "github.com/lib/pq"
 
+	"github.com/agalitsyn/goapi/handlers"
+	"github.com/agalitsyn/goapi/health"
+	"github.com/agalitsyn/goapi/preferences"
 	"github.com/apex/log/handlers/json"
 	"github.com/apex/log/handlers/text"
 	"github.com/julienschmidt/httprouter"
 	"github.com/kelseyhightower/envconfig"
-	"github.com/agalitsyn/goapi/handlers"
-	"github.com/agalitsyn/goapi/health"
-	"github.com/agalitsyn/goapi/preferences"
 )
 
 func main() {

@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/julienschmidt/httprouter"
 	"github.com/agalitsyn/goapi/health"
+	"github.com/julienschmidt/httprouter"
 )
 
 // HealthzHandler responds to health check requests.
