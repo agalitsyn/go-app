@@ -13,6 +13,8 @@ $ deis login <URL>
 
 $ deis create <имя проекта>-<имя приложения>
 
+$ deis config:set DATABASE_URL=postgres://<user>:<password>@<url>:<port>/<dbname>
+
 $ make release-staging
 Creating build... o..
 
@@ -28,6 +30,13 @@ $ deis info
 
 ```sh
 $ make run
+```
+
+*Note:* в приложении используется база данный postgresql. Доступ к ней прописывается через ENV, в файле `.env`.
+
+Запустить postgres для разработки можно в докере
+```
+docker run --name postgres94 -e POSTGRES_PASSWORD=docker -e POSTGRES_USER=docker -p 5432:5432 postgres:9.4
 ```
 
 ## Деплой в Deis
