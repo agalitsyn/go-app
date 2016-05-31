@@ -101,10 +101,16 @@ func main() {
 				log.WithError(err).Error("Recieved error")
 			}
 		case s := <-signalChan:
-			log.Infof(fmt.Sprintf("Captured %v. Exiting...", s))
+			log.Infof(fmt.Sprintf("Captured %v. Gracefull shutdown...", s))
 			health.SetHealthzStatus(http.StatusServiceUnavailable)
 			httpServer.BlockingClose()
-			os.Exit(0)
+
+			switch s {
+			case syscall.SIGINT:
+				os.Exit(130)
+			case syscall.SIGTERM:
+				os.Exit(0)
+			}
 		}
 	}
 }
