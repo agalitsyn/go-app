@@ -12,12 +12,8 @@ import (
 
 	"syscall"
 
-	"database/sql"
-	"time"
-
-	_ "github.com/lib/pq"
-
 	"github.com/agalitsyn/goapi/api"
+	"github.com/agalitsyn/goapi/db"
 	"github.com/agalitsyn/goapi/health"
 	"github.com/agalitsyn/goapi/preferences"
 	"github.com/apex/log/handlers/json"
@@ -25,9 +21,42 @@ import (
 )
 
 type Service struct {
+	api         *api.API
 	preferences *preferences.Preferences
+	database    *db.Database
 	errChan     chan error
 	signalChan  chan os.Signal
+}
+
+func Start() error {
+	p, err := preferences.Get()
+	if err != nil {
+		return err
+	}
+
+	db, err := db.New(p.DatabaseURL)
+	if err != nil {
+		return err
+	}
+
+	err = db.Connect()
+	if err != nil {
+		return err
+	}
+
+	api := api.New("", p.Port)
+
+	service := &Service{
+		api:         api,
+		database:    db,
+		preferences: p,
+		errChan:     make(chan error, 10),
+		signalChan:  make(chan os.Signal, 1),
+	}
+	if err := service.start(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *Service) start() error {
@@ -45,36 +74,19 @@ func (s *Service) start() error {
 
 	// Connect to database.
 	log.Infof("Connecting to database at '%v'.", s.preferences.DatabaseURL)
-	dsn := s.preferences.DatabaseURL
-
-	var db *sql.DB
-	db, err = sql.Open("postgres", dsn)
-	if err != nil {
-		return err
-	}
-
-	var dbError error
-	maxAttempts := 30
-	for attempts := 1; attempts <= maxAttempts; attempts++ {
-		dbError = db.Ping()
-		if dbError == nil {
-			break
-		}
-		log.WithError(dbError).Error("Could not establish a connection with the database")
-		time.Sleep(time.Duration(attempts) * time.Second)
-	}
-	if dbError != nil {
-		return dbError
-	}
 
 	// Setup HTTP server
 	log.Info("Starting server...")
 	log.Infof("HTTP service listening on %v", s.preferences.Port)
-	api := api.New("", s.preferences.Port)
 
+	s.serve()
+	return nil
+}
+
+func (s *Service) serve() {
 	// Handle errors and signals
 	go func() {
-		s.errChan <- api.Server.ListenAndServe()
+		s.errChan <- s.api.Server.ListenAndServe()
 	}()
 
 	signal.Notify(s.signalChan, syscall.SIGINT, syscall.SIGTERM)
@@ -84,12 +96,11 @@ func (s *Service) start() error {
 			if err != nil {
 				log.WithError(err).Error("Recieved error")
 			}
-		case s := <-s.signalChan:
-			log.Infof(fmt.Sprintf("Captured %v. Gracefull shutdown...", s))
-			health.SetHealthzStatus(http.StatusServiceUnavailable)
-			api.Server.BlockingClose()
+		case sig := <-s.signalChan:
+			log.Infof(fmt.Sprintf("Captured %v. Gracefull shutdown...", sig))
+			s.stop()
 
-			switch s {
+			switch sig {
 			case syscall.SIGINT:
 				os.Exit(130)
 			case syscall.SIGTERM:
@@ -99,21 +110,8 @@ func (s *Service) start() error {
 	}
 }
 
-func Start() error {
-	p, err := preferences.Get()
-	if err != nil {
-		return err
-	}
-
-	service := &Service{
-		preferences: p,
-		errChan:     make(chan error, 10),
-		signalChan:  make(chan os.Signal, 1),
-	}
-
-	if err := service.start(); err != nil {
-		return err
-	}
-
-	return nil
+func (s *Service) stop() {
+	s.database.Close()
+	health.SetHealthzStatus(http.StatusServiceUnavailable)
+	s.api.Server.BlockingClose()
 }
