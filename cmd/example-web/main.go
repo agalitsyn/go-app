@@ -26,26 +26,22 @@ import (
 	"github.com/apex/log/handlers/json"
 	"github.com/apex/log/handlers/text"
 	"github.com/julienschmidt/httprouter"
-	"github.com/kelseyhightower/envconfig"
 )
 
 func main() {
-	var (
-		p  preferences.Preferences
-		db *sql.DB
-	)
-
-	err := envconfig.Process("goexample", &p)
+	// Firstly parse preferences
+	p, err := preferences.Get()
 	if err != nil {
-		log.WithError(err).Error("Can't parse config")
+		fmt.Println(err.Error())
+		os.Exit(1)
 	}
 
+	// Configure logger
 	if strings.ToLower(p.LogFormat) == "text" {
 		log.SetHandler(text.New(os.Stdout))
 	} else {
 		log.SetHandler(json.New(os.Stdout))
 	}
-
 	lvl, err := log.ParseLevel(p.LogLevel)
 	if err != nil {
 		log.WithError(err).Error("Log level is invalid")
@@ -57,6 +53,7 @@ func main() {
 	log.Infof("Connecting to database at '%v'.", p.DatabaseURL)
 	dsn := p.DatabaseURL
 
+	var db *sql.DB
 	db, err = sql.Open("postgres", dsn)
 	if err != nil {
 		log.WithError(err).Error("The data source arguments are not valid")
@@ -76,6 +73,7 @@ func main() {
 		log.WithError(dbError).Fatal("Connection to database failed.")
 	}
 
+	// Setup HTTP server
 	httpAddr := net.JoinHostPort("", p.Port)
 	log.Info("Starting server...")
 	log.Infof("HTTP service listening on %v", httpAddr)
@@ -88,6 +86,7 @@ func main() {
 	httpServer.Addr = httpAddr
 	httpServer.Handler = handlers.LoggingHandler(router)
 
+	// Handle errors and signals
 	errChan := make(chan error, 10)
 	go func() {
 		errChan <- httpServer.ListenAndServe()
