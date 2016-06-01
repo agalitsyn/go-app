@@ -1,2 +1,3 @@
 # Prj specific
 bin
+.env

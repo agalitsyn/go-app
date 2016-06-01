@@ -32,7 +32,7 @@ func (d *Database) Connect() error {
 			break
 		}
 		errors.Fprint(os.Stdout, errors.Wrap(dbError, "Could not establish a connection with the database"))
-		time.Sleep(time.Duration(attempts) * time.Millisecond)
+		time.Sleep(time.Duration(attempts) * time.Second)
 	}
 
 	if dbError != nil {

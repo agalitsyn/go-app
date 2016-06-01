@@ -48,8 +48,5 @@ docker-push:
 
 .PHONY: docker-push-private
 docker-push-private:
-	ifndef REGISTRY
-		$(error REGISTRY not specified, did you forget to include some vars.mk?)
-	endif
 	docker tag "$(IMAGE)" "$(REGISTRY)/$(IMAGE)"
 	docker push "$(REGISTRY)/$(IMAGE)"

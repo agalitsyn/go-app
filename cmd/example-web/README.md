@@ -21,7 +21,7 @@ $ deis config:set DATABASE_URL=postgres://<user>:<password>@<url>:<port>/<dbname
 $ make docker-build
 
 # Нужно уточнить в какой registry вы будете пушить образ
-$ IMAGE=my-app:latest REGISTRY=my-registry.private make docker-push-private
+$ IMAGE=my-space/my-app:latest REGISTRY=my-registry.private make docker-push-private
 
 $ deis pull <image>
 Creating build... o..
@@ -37,6 +37,8 @@ $ deis info
 Запуск приложения локально:
 
 ```sh
+$ cp .env.default .env
+
 $ make run
 ```
 
