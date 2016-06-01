@@ -5,6 +5,7 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
+	"fmt"
 )
 
 type Database struct {
@@ -29,7 +30,7 @@ func (d *Database) Connect() error {
 		if dbError == nil {
 			break
 		}
-		//log.WithError(dbError).Error("Could not establish a connection with the database")
+		fmt.Println("Could not establish a connection with the database")
 		time.Sleep(time.Duration(attempts) * time.Second)
 	}
 

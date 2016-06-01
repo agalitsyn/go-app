@@ -6,21 +6,17 @@ import (
 	"os"
 	"os/signal"
 
-	"strings"
-
-	"github.com/apex/log"
-
 	"syscall"
 
 	"github.com/agalitsyn/goapi/api"
 	"github.com/agalitsyn/goapi/db"
 	"github.com/agalitsyn/goapi/health"
+	"github.com/agalitsyn/goapi/log"
 	"github.com/agalitsyn/goapi/preferences"
-	"github.com/apex/log/handlers/json"
-	"github.com/apex/log/handlers/text"
 )
 
 type Service struct {
+	logger      log.Logger
 	api         *api.API
 	preferences *preferences.Preferences
 	database    *db.Database
@@ -45,46 +41,20 @@ func Start() error {
 	}
 
 	api := api.New("", p.Port)
-
+	log := log.GetLogger(p.LogFormat, p.LogLevel)
 	service := &Service{
+		logger:      log,
 		api:         api,
 		database:    db,
 		preferences: p,
 		errChan:     make(chan error, 10),
 		signalChan:  make(chan os.Signal, 1),
 	}
-	if err := service.start(); err != nil {
-		return err
-	}
+	service.start()
 	return nil
 }
 
 func (s *Service) start() error {
-	// Configure logger
-	if strings.ToLower(s.preferences.LogFormat) == "text" {
-		log.SetHandler(text.New(os.Stdout))
-	} else {
-		log.SetHandler(json.New(os.Stdout))
-	}
-	lvl, err := log.ParseLevel(s.preferences.LogLevel)
-	if err != nil {
-		return err
-	}
-	log.SetLevel(lvl)
-
-	// Connect to database.
-	log.Infof("Connecting to database at '%v'.", s.preferences.DatabaseURL)
-
-	// Setup HTTP server
-	log.Info("Starting server...")
-	log.Infof("HTTP service listening on %v", s.preferences.Port)
-
-	s.serve()
-	return nil
-}
-
-func (s *Service) serve() {
-	// Handle errors and signals
 	go func() {
 		s.errChan <- s.api.Server.ListenAndServe()
 	}()
@@ -94,10 +64,10 @@ func (s *Service) serve() {
 		select {
 		case err := <-s.errChan:
 			if err != nil {
-				log.WithError(err).Error("Recieved error")
+				s.logger.WithError(err).Error("Recieved error")
 			}
 		case sig := <-s.signalChan:
-			log.Infof(fmt.Sprintf("Captured %v. Gracefull shutdown...", sig))
+			s.logger.Infof(fmt.Sprintf("Captured %v. Gracefull shutdown...", sig))
 			s.stop()
 
 			switch sig {

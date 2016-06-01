@@ -3,8 +3,6 @@ package health
 import (
 	"net/http"
 	"sync"
-
-	"github.com/apex/log"
 )
 
 var (
@@ -21,6 +19,6 @@ func HealthzStatus() int {
 func SetHealthzStatus(status int) {
 	mu.Lock()
 	healthzStatus = status
-	log.Debugf("Healtz status updated to '%v'", healthzStatus)
+	//log.Debugf("Healtz status updated to '%v'", healthzStatus)
 	mu.Unlock()
 }
