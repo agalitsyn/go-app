@@ -19,6 +19,5 @@ func HealthzStatus() int {
 func SetHealthzStatus(status int) {
 	mu.Lock()
 	healthzStatus = status
-	//log.Debugf("Healtz status updated to '%v'", healthzStatus)
 	mu.Unlock()
 }

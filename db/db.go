@@ -2,10 +2,11 @@ package db
 
 import (
 	"database/sql"
+	"os"
 	"time"
 
 	_ "github.com/lib/pq"
-	"fmt"
+	"github.com/pkg/errors"
 )
 
 type Database struct {
@@ -15,7 +16,7 @@ type Database struct {
 func New(dsn string) (*Database, error) {
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Can't open database")
 	}
 
 	return &Database{db}, nil
@@ -30,19 +31,20 @@ func (d *Database) Connect() error {
 		if dbError == nil {
 			break
 		}
-		fmt.Println("Could not establish a connection with the database")
-		time.Sleep(time.Duration(attempts) * time.Second)
+		errors.Fprint(os.Stdout, errors.Wrap(dbError, "Could not establish a connection with the database"))
+		time.Sleep(time.Duration(attempts) * time.Millisecond)
 	}
 
 	if dbError != nil {
-		return dbError
+		return errors.Wrap(dbError, "All attempts failed")
 	}
 	return nil
 }
 
-func (d *Database) Close() {
+func (d *Database) Close() error {
 	err := d.db.Close()
 	if err != nil {
-		//log.Fatal(err)
+		return errors.Wrap(err, "Can't close database")
 	}
+	return nil
 }

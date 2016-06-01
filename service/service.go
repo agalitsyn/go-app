@@ -13,6 +13,7 @@ import (
 	"github.com/agalitsyn/goapi/health"
 	"github.com/agalitsyn/goapi/log"
 	"github.com/agalitsyn/goapi/preferences"
+	"github.com/pkg/errors"
 )
 
 type Service struct {
@@ -27,17 +28,17 @@ type Service struct {
 func Start() error {
 	p, err := preferences.Get()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Failed create preferences")
 	}
 
 	db, err := db.New(p.DatabaseURL)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Can't create database")
 	}
 
 	err = db.Connect()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Can't connect to database")
 	}
 
 	api := api.New("", p.Port)

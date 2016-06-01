@@ -34,14 +34,14 @@ func GetLogger(format, level string) Logger {
 // GetLoggerWithFields returns a logger instance with the specified fields
 // without affecting the context. Extra specified keys will be resolved from
 // the context.
-//func GetLoggerWithFields(fields map[string]interface{}) Logger {
-//	lfields := make(log.Fields, len(fields))
-//	for key, value := range fields {
-//		lfields[key] = value
-//	}
-//
-//	return getApexLogger().WithFields(lfields)
-//}
+func GetLoggerWithFields(fields map[string]interface{}) Logger {
+	lfields := make(log.Fields, len(fields))
+	for key, value := range fields {
+		lfields[key] = value
+	}
+
+	return getApexLogger().WithFields(lfields)
+}
 
 func getApexLogger() *log.Entry {
 	fields := log.Fields{
