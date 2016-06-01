@@ -17,7 +17,7 @@ import (
 )
 
 type Service struct {
-	logger      log.Logger
+	log         log.Logger
 	api         *api.API
 	preferences *preferences.Preferences
 	database    *db.Database
@@ -31,27 +31,34 @@ func Start() error {
 		return errors.Wrap(err, "Failed create preferences")
 	}
 
+	log := log.GetLogger(p.LogFormat, p.LogLevel)
+
 	db, err := db.New(p.DatabaseURL)
 	if err != nil {
 		return errors.Wrap(err, "Can't create database")
 	}
-
 	err = db.Connect()
 	if err != nil {
 		return errors.Wrap(err, "Can't connect to database")
 	}
+	log.Infof("Connection to database '%v' established", p.DatabaseURL)
 
 	api := api.New("", p.Port)
-	log := log.GetLogger(p.LogFormat, p.LogLevel)
+	log.Infof("HTTP service will listening on %v", p.Port)
+
 	service := &Service{
-		logger:      log,
+		log:         log,
 		api:         api,
 		database:    db,
 		preferences: p,
 		errChan:     make(chan error, 10),
 		signalChan:  make(chan os.Signal, 1),
 	}
-	service.start()
+	log.Info("Starting server...")
+	if err = service.start(); err != nil {
+		return errors.Wrap(err, "Service starting failed")
+	}
+
 	return nil
 }
 
@@ -65,10 +72,10 @@ func (s *Service) start() error {
 		select {
 		case err := <-s.errChan:
 			if err != nil {
-				s.logger.WithError(err).Error("Recieved error")
+				return errors.Wrap(err, "Net error")
 			}
 		case sig := <-s.signalChan:
-			s.logger.Infof(fmt.Sprintf("Captured %v. Gracefull shutdown...", sig))
+			s.log.Infof(fmt.Sprintf("Captured %v. Gracefull shutdown...", sig))
 			s.stop()
 
 			switch sig {
@@ -82,7 +89,7 @@ func (s *Service) start() error {
 }
 
 func (s *Service) stop() {
-	s.database.Close()
 	health.SetHealthzStatus(http.StatusServiceUnavailable)
+	s.database.Close()
 	s.api.Server.BlockingClose()
 }
