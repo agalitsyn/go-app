@@ -32,6 +32,7 @@ func Start() error {
 	}
 
 	log := log.GetLogger(p.LogFormat, p.LogLevel)
+	log.Infof("Get preferences '%+v'", p)
 
 	db, err := db.New(p.DatabaseURL)
 	if err != nil {
@@ -44,7 +45,7 @@ func Start() error {
 	log.Infof("Connection to database '%v' established", p.DatabaseURL)
 
 	api := api.New("", p.Port)
-	log.Infof("HTTP service will listening on %v", p.Port)
+	log.Infof("HTTP server configured for listening on %v", p.Port)
 
 	service := &Service{
 		log:         log,
@@ -54,6 +55,7 @@ func Start() error {
 		errChan:     make(chan error, 10),
 		signalChan:  make(chan os.Signal, 1),
 	}
+
 	log.Info("Starting server...")
 	if err = service.start(); err != nil {
 		return errors.Wrap(err, "Service starting failed")
