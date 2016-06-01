@@ -15,6 +15,12 @@
 			"revisionTime": "2016-05-17T19:21:22Z"
 		},
 		{
+			"checksumSHA1": "sQREBJvQYOoW8ihwvdtlFqXVKNw=",
+			"path": "github.com/apex/log/handlers/discard",
+			"revision": "a999c1b29c986b1972ec53b15092b63a8051ec83",
+			"revisionTime": "2016-05-24T20:32:24Z"
+		},
+		{
 			"checksumSHA1": "LjQdQscNb25c2HxbREjmFFOoyx4=",
 			"path": "github.com/apex/log/handlers/json",
 			"revision": "56b598dd62b8b727bde7fe74a904c052c872bf88",
@@ -62,6 +68,12 @@
 			"path": "github.com/lib/pq/oid",
 			"revision": "ee1442bda7bd1b6a84e913bdb421cb1874ec629d",
 			"revisionTime": "2016-05-10T22:24:21Z"
+		},
+		{
+			"checksumSHA1": "km0o4kVEOi9zHxAUKPrucdXYJBw=",
+			"path": "github.com/pkg/errors",
+			"revision": "936b5d744d061b4142dbe0f26cb08fd10e2079be",
+			"revisionTime": "2016-05-24T23:59:37Z"
 		},
 		{
 			"checksumSHA1": "zKKp5SZ3d3ycKe4EKMNT0BqAWBw=",
