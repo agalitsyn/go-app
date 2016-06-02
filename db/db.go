@@ -2,41 +2,57 @@ package db
 
 import (
 	"database/sql"
-	"os"
 	"time"
 
+	"github.com/agalitsyn/goapi/log"
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
+var (
+	DBDriverName            = "postgres"
+	ErrDBConnAttemptsFailed = errors.New("All attempts failed")
+)
+
 type Database struct {
-	db *sql.DB
+	db  *sql.DB
+	log log.Logger
 }
 
 func New(dsn string) (*Database, error) {
-	db, err := sql.Open("postgres", dsn)
+	fields := map[string]interface{}{
+		"driver": DBDriverName,
+	}
+	dbLogger := log.GetLoggerWithFields("db", fields)
+
+	db, err := sql.Open(DBDriverName, dsn)
 	if err != nil {
 		return nil, errors.Wrap(err, "Can't open database")
 	}
 
-	return &Database{db}, nil
+	return &Database{
+		db:  db,
+		log: dbLogger,
+	}, nil
 }
 
 func (d *Database) Connect() error {
 	var dbError error
 
 	maxAttempts := 30
-	for attempts := 1; attempts <= maxAttempts; attempts++ {
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
 		dbError = d.db.Ping()
 		if dbError == nil {
 			break
 		}
-		errors.Fprint(os.Stdout, errors.Wrap(dbError, "Could not establish a connection with the database"))
-		time.Sleep(time.Duration(attempts) * time.Second)
+		nextAttemptWait := time.Duration(attempt) * time.Second
+
+		d.log.WithError(dbError).Errorf("Attempt %v: could not establish a connection with the database. Wait for %v.", attempt, nextAttemptWait)
+		time.Sleep(nextAttemptWait)
 	}
 
 	if dbError != nil {
-		return errors.Wrap(dbError, "All attempts failed")
+		return ErrDBConnAttemptsFailed
 	}
 	return nil
 }

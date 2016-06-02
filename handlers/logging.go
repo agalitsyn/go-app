@@ -16,8 +16,8 @@ func LoggingHandler(h http.Handler) http.Handler {
 			"http_method":     r.Method,
 			"http_proto":      r.Proto,
 		}
-		accessLogger := log.GetLoggerWithFields(fields)
-		accessLogger.Info("")
+		accessLogger := log.GetLoggerWithFields("api", fields)
+		accessLogger.Info("Incoming request")
 
 		h.ServeHTTP(w, r)
 	})

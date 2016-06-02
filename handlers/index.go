@@ -12,8 +12,9 @@ type JSONResponse struct {
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	// Unfortunately we should show httprouter dependency at func signature
 	response := JSONResponse{
-		Message: "Hello",
+		Message: "Hello world",
 	}
 	json.NewEncoder(w).Encode(response)
 	return

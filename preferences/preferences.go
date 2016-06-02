@@ -17,9 +17,7 @@ type Preferences struct {
 
 func Get() (*Preferences, error) {
 	var p Preferences
-
-	err := envconfig.Process("goexample", &p)
-	if err != nil {
+	if err := envconfig.Process("", &p); err != nil {
 		return nil, ErrCantParse
 	}
 	return &p, nil

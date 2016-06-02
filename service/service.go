@@ -32,7 +32,7 @@ func Start() error {
 	}
 
 	log := log.GetLogger(p.LogFormat, p.LogLevel)
-	log.Infof("Get preferences '%+v'", p)
+	log.Infof("Got preferences '%#v'", p)
 
 	db, err := db.New(p.DatabaseURL)
 	if err != nil {

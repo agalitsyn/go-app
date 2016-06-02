@@ -32,17 +32,18 @@ func GetLogger(format, level string) Logger {
 }
 
 // GetLoggerWithFields returns a logger instance with the specified fields
-// without affecting the context. Extra specified keys will be resolved from
-// the context.
-func GetLoggerWithFields(fields map[string]interface{}) Logger {
+// without affecting root context.
+func GetLoggerWithFields(context string, fields map[string]interface{}) Logger {
 	lfields := make(log.Fields, len(fields))
 	for key, value := range fields {
 		lfields[key] = value
 	}
+	lfields["context"] = context
 
 	return getApexLogger().WithFields(lfields)
 }
 
+// Returns stadrart root logger with additional fields
 func getApexLogger() *log.Entry {
 	fields := log.Fields{
 		"deis.release":  os.Getenv("DEIS_RELEASE"),
