@@ -23,7 +23,7 @@ func doHTTPRequest(method, url string) *http.Response {
 	return response
 }
 
-func TestIndex(t *testing.T) {
+func TestIndexHandler(t *testing.T) {
 	router := httprouter.New()
 	router.GET("/", handlers.IndexHandler)
 
@@ -34,7 +34,7 @@ func TestIndex(t *testing.T) {
 	assert.Exactly(t, http.StatusOK, response.StatusCode)
 }
 
-func TestHealthz(t *testing.T) {
+func TestHealthzHandler(t *testing.T) {
 	router := httprouter.New()
 	router.GET("/healthz", handlers.HealthzHandler)
 

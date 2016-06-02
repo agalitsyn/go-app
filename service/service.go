@@ -16,6 +16,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Kind of singletone godlike object for service with all dependencies
 type Service struct {
 	log         log.Logger
 	api         *api.API
@@ -52,19 +53,16 @@ func Start() error {
 		api:         api,
 		database:    db,
 		preferences: p,
-		errChan:     make(chan error, 10),
+		errChan:     make(chan error, 1),
 		signalChan:  make(chan os.Signal, 1),
 	}
 
 	log.Info("Starting server...")
-	if err = service.start(); err != nil {
-		return errors.Wrap(err, "Service starting failed")
-	}
-
+	service.start()
 	return nil
 }
 
-func (s *Service) start() error {
+func (s *Service) start() {
 	go func() {
 		s.errChan <- s.api.Server.ListenAndServe()
 	}()
@@ -74,7 +72,8 @@ func (s *Service) start() error {
 		select {
 		case err := <-s.errChan:
 			if err != nil {
-				return errors.Wrap(err, "Net error")
+				s.log.WithError(err).Error("Got error from server")
+				os.Exit(1)
 			}
 		case sig := <-s.signalChan:
 			s.log.Infof(fmt.Sprintf("Captured %v. Gracefull shutdown...", sig))

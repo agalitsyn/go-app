@@ -9,11 +9,13 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+// Provides server and router in conjunction
 type API struct {
 	Server *manners.GracefulServer
 	Router http.Handler
 }
 
+// Constructor for API struct
 func New(host, port string) *API {
 	httpAddr := net.JoinHostPort(host, port)
 

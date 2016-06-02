@@ -1,17 +1,8 @@
 package main
 
-import (
-	"os"
+import "github.com/agalitsyn/goapi/service"
 
-	"github.com/pkg/errors"
-
-	"github.com/agalitsyn/goapi/service"
-)
-
+// Start service and catch all errors for running service
 func main() {
-	if err := service.Start(); err != nil {
-		err = errors.Wrap(err, "Service start failed")
-		errors.Fprint(os.Stdout, err)
-		os.Exit(1)
-	}
+	service.Start()
 }

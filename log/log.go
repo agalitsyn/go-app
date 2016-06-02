@@ -43,7 +43,7 @@ func GetLoggerWithFields(context string, fields map[string]interface{}) Logger {
 	return getApexLogger().WithFields(lfields)
 }
 
-// Returns stadrart root logger with additional fields
+// Returns standard root logger with additional fields
 func getApexLogger() *log.Entry {
 	fields := log.Fields{
 		"deis.release":  os.Getenv("DEIS_RELEASE"),

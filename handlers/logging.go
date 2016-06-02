@@ -6,6 +6,7 @@ import (
 	"github.com/agalitsyn/goapi/log"
 )
 
+// Provides access log type
 func LoggingHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fields := map[string]interface{}{

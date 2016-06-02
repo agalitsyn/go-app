@@ -1,2 +1,2 @@
-// Package goapi provides an example application for forking and development on top of it..
+// Package goapi provides an example of 12-factor application for deploying in Deis.
 package goapi

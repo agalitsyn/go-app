@@ -15,6 +15,7 @@ type Preferences struct {
 	DatabaseURL string `envconfig:"DATABASE_URL"`
 }
 
+// Returnes struct with filled fields
 func Get() (*Preferences, error) {
 	var p Preferences
 	if err := envconfig.Process("", &p); err != nil {

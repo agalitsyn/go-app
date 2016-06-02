@@ -14,11 +14,13 @@ var (
 	ErrDBConnAttemptsFailed = errors.New("All attempts failed")
 )
 
+// Provides database and logger
 type Database struct {
 	db  *sql.DB
 	log log.Logger
 }
 
+// Constructor for DB struct
 func New(dsn string) (*Database, error) {
 	fields := map[string]interface{}{
 		"driver": DBDriverName,
