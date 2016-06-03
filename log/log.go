@@ -17,10 +17,10 @@ type Logger interface {
 
 // Returns logger instance
 func GetLogger(format, level string) Logger {
-	if strings.ToLower(format) == "text" {
-		log.SetHandler(text.New(os.Stdout))
-	} else {
+	if strings.ToLower(format) == "json" {
 		log.SetHandler(json.New(os.Stdout))
+	} else {
+		log.SetHandler(text.New(os.Stdout))
 	}
 	lvl, err := log.ParseLevel(level)
 	if err != nil {

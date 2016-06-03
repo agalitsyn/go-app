@@ -13,6 +13,7 @@ $ deis login <URL>
 
 $ deis create <имя проекта>-<имя приложения>
 
+$ deis config:set PORT=5000
 $ deis config:set HEALTHCHECK_URL=/healthz
 $ deis config:set HEALTHCHECK_INITIAL_DELAY=3
 $ deis config:set HEALTHCHECK_TIMEOUT=10
