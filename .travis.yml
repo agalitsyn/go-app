@@ -1,0 +1,11 @@
+language: go
+
+go:
+  - 1.6
+
+install:
+  - go get github.com/alecthomas/gometalinter 
+  - gometalinter --install --update
+
+script:
+  - make test
