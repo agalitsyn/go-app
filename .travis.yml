@@ -1,7 +1,14 @@
 language: go
+go_import_path: github.com/agalitsyn/goapi
+dist: trusty
+sudo: false
 
 go:
   - 1.6
+
+env:
+  global:
+   - GO15VENDOREXPERIMENT=1
 
 install:
   - go get github.com/alecthomas/gometalinter 
@@ -9,3 +16,8 @@ install:
 
 script:
   - make test
+
+notifications:
+  email:
+    on_success: never
+    on_failure: change
