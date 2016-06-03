@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/agalitsyn/goapi.svg?branch=master)](https://travis-ci.org/agalitsyn/goapi)
+
 # goapi
 
 Репозиторий служит примером 12-факторного приложения, с минимальной струтурой и
@@ -84,7 +86,9 @@ $ make test
 
 ## CI
 
-CI происходит в gitlab ci, все настройки в файле `.gitlab-ci.yml`.
+### Gitlab CI
+
+Все настройки в файле `.gitlab-ci.yml`.
 
 Документация по синтаксису [.gitlab-ci.yml](http://doc.gitlab.com/ce/ci/yaml/README.html)
 
@@ -97,4 +101,6 @@ CI происходит в gitlab ci, все настройки в файле `.
 
 Сам образ для CI собран на основе apline linux, найти его можно тут https://github.com/agalitsyn/goenv/tree/master/docker/ci
 
+### Travis CI
 
+Все настройки в файле `.travis.yml`
