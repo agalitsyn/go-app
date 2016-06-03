@@ -88,10 +88,13 @@ CI происходит в gitlab ci, все настройки в файле `.
 
 Документация по синтаксису [.gitlab-ci.yml](http://doc.gitlab.com/ce/ci/yaml/README.html)
 
-Используется общий docker runner.
+Используется docker runner.
 
 Так же есть [документация](https://gitlab.com/gitlab-org/gitlab-ce/blob/76109d754e167e05db7897f6b89a36b2fadffc65/doc/ci/examples/test-golang-application.md),
 в которой есть пример настройки окружения не в docker контейнере.
 
 Если когда-нибудь для тестов понадобится база данныхб смотрите раздел services [postgres](http://docs.gitlab.com/ce/ci/services/postgres.html).
+
+Сам образ для CI собран на основе apline linux, найти его можно тут https://github.com/agalitsyn/goenv/tree/master/docker/ci
+
 

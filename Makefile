@@ -2,7 +2,7 @@ PROJECT_PKGS := $$(go list ./... | grep -v /vendor/)
 
 GOMETALINTER_REQUIRED_FLAGS := --vendor --tests --errors
 # gotype is broken, see https://github.com/alecthomas/gometalinter/issues/91
-GOMETALINTER_COMMON_FLAGS := --concurrency 4 --deadline 30s --line-length 120 --enable lll --disable gotype
+GOMETALINTER_COMMON_FLAGS := --concurrency 2 --deadline 60s --line-length 120 --enable lll --disable gotype
 
 
 .PHONY: format
