@@ -1,21 +1,28 @@
-PROJECT_PKGS := $$(go list ./... | grep -v /vendor/)
+.PHONY: all
+all: install-tools build start
+
+.PHONY: build
+build:
+	go install .
+
+.PHONY: start
+start:
+	goreman start
+
+.PHONY: format
+format:
+	goimports -w .
 
 GOMETALINTER_REQUIRED_FLAGS := --vendor --tests --errors
 # gotype is broken, see https://github.com/alecthomas/gometalinter/issues/91
 GOMETALINTER_COMMON_FLAGS := --concurrency 2 --deadline 60s --line-length 120 --enable lll --disable gotype
-
-
-.PHONY: format
-format:
-	go fmt ./...
-	goimports -w .
 
 .PHONY: lint
 lint:
 	gometalinter \
 		$(GOMETALINTER_COMMON_FLAGS) \
 		$(GOMETALINTER_REQUIRED_FLAGS) \
-		./...
+		.
 
 .PHONY: check
 check:
@@ -26,26 +33,32 @@ check:
 		--fast \
 		$(GOMETALINTER_COMMON_FLAGS) \
 		$(GOMETALINTER_REQUIRED_FLAGS) \
-		./...
+		.
 
 .PHONY: test
 test: lint
-	for pkg in $(PROJECT_PKGS); do \
-        go test -cover -v $$pkg || exit 1 ;\
-    done
-
-.PHONY: test-docker
-test-docker:
-	docker run -it -v $$(pwd):/go/src/$$(go list .) agalitsyn/goci:1.6 bash -c "cd /go/src/$$(go list .) && make test"
+	go test -cover -v .
 
 .PHONY: sloccount
 sloccount:
 	find . -path ./vendor -prune -o -name "*.go" -print0 | xargs -0 wc -l
 
 .PHONY: info
-info: sloccount
-	depscheck -totalonly -tests $(PROJECT_PKGS)
+info:
+	depscheck -totalonly -tests .
 
 .PHONY: std-info
-std-info: sloccount
-	depscheck -stdlib -v $(PROJECT_PKGS)
+std-info:
+	depscheck -stdlib -v .
+
+PACKAGES := \
+	golang.org/x/tools/cmd/goimports \
+	github.com/mattn/goreman \
+	github.com/tools/godep \
+	github.com/alecthomas/gometalinter \
+	github.com/divan/depscheck
+
+.PHONY: install-tools
+install-tools:
+	$(foreach pkg,$(PACKAGES),go get -u $(pkg);)
+	gometalinter --install --update
