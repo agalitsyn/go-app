@@ -2,7 +2,10 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
 	"os/signal"
@@ -27,6 +30,7 @@ func main() {
 	kingpin.Flag("database-url", "Database URL for connection.").Envar(EnvDatabaseURL).StringVar(&cfg.DatabaseURL)
 	kingpin.Flag("tls-cert", "Path to the client server TLS cert file.").Envar(EnvTLSCert).StringVar(&cfg.TLSCert)
 	kingpin.Flag("tls-key", "Path to the client server TLS key file.").Envar(EnvTLSKey).StringVar(&cfg.TLSKey)
+	kingpin.Flag("tls-ca-cert", "Path to the CAs cert file.").Envar(EnvTLSCACert).StringVar(&cfg.TLSCACert)
 	kingpin.Parse()
 
 	if err := cfg.SetupLogging(); err != nil {
@@ -45,6 +49,18 @@ func main() {
 		log.Fatal(trace.DebugReport(err))
 	}
 
+	caCert, err := ioutil.ReadFile(cfg.TLSCACert)
+	if err != nil {
+		log.Fatal(trace.DebugReport(err))
+	}
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+	tlsConfig := &tls.Config{
+		ClientCAs:  caCertPool,
+		ClientAuth: tls.RequireAndVerifyClientCert,
+	}
+	tlsConfig.BuildNameToCertificate()
+
 	router := httprouter.New()
 	router.GET("/", IndexHandler)
 	router.GET("/healthz", HealthzHandler)
@@ -52,6 +68,7 @@ func main() {
 	httpServer := manners.NewServer()
 	httpServer.Addr = net.JoinHostPort(cfg.Host, cfg.Port)
 	httpServer.Handler = handlers.LoggingHandler(os.Stdout, router)
+	httpServer.TLSConfig = tlsConfig
 
 	errChan := make(chan error, 10)
 	go func() {

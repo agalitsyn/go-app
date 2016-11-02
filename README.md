@@ -36,5 +36,5 @@ For database you can use docker image https://hub.docker.com/_/postgres/
 ### Test with cURL
 
 ```
-$ curl --cacert ./ca.pem https://127.0.0.1:5000/
+$ curl --cacert ./ca.pem --key ./client-key.pem --cert ./client.pem https://127.0.0.1:5000/
 ```
