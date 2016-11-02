@@ -25,6 +25,8 @@ func main() {
 	kingpin.Flag("host", "HTTP host.").Default("127.0.0.1").Envar(EnvHost).StringVar(&cfg.Host)
 	kingpin.Flag("port", "HTTP port.").Default("5000").Envar(EnvPort).StringVar(&cfg.Port)
 	kingpin.Flag("database-url", "Database URL for connection.").Envar(EnvDatabaseURL).StringVar(&cfg.DatabaseURL)
+	kingpin.Flag("tls-cert", "Path to the client server TLS cert file.").Envar(EnvTLSCert).StringVar(&cfg.TLSCert)
+	kingpin.Flag("tls-key", "Path to the client server TLS key file.").Envar(EnvTLSKey).StringVar(&cfg.TLSKey)
 	kingpin.Parse()
 
 	if err := cfg.SetupLogging(); err != nil {
@@ -33,15 +35,15 @@ func main() {
 
 	log.Infof("Start with config: %+v", cfg)
 
-	//db, err := GetDatabase(cfg.DatabaseURL)
-	//if err != nil {
-	//log.Fatal(trace.DebugReport(err))
-	//}
+	db, err := GetDatabase(cfg.DatabaseURL)
+	if err != nil {
+		log.Fatal(trace.DebugReport(err))
+	}
 
-	//log.Debugf("Connecting to database at %s", cfg.DatabaseURL)
-	//if err = db.Connect(); err != nil {
-	//log.Fatal(trace.DebugReport(err))
-	//}
+	log.Debugf("Connecting to database at %s", cfg.DatabaseURL)
+	if err = db.Connect(); err != nil {
+		log.Fatal(trace.DebugReport(err))
+	}
 
 	router := httprouter.New()
 	router.GET("/", IndexHandler)
@@ -53,7 +55,7 @@ func main() {
 
 	errChan := make(chan error, 10)
 	go func() {
-		errChan <- httpServer.ListenAndServeTLS("server.pem", "server-key.pem")
+		errChan <- httpServer.ListenAndServeTLS(cfg.TLSCert, cfg.TLSKey)
 	}()
 
 	signalChan := make(chan os.Signal, 1)

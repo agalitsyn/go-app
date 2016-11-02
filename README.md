@@ -17,11 +17,21 @@ Download:
 go get https://github.com/agalitsyn/goapi
 ```
 
+### Review settings
+
+```
+$ cp .env.default .env
+$ vi .env
+```
+
 ### Build and Run
 
 ```
 $ make
+
 ```
+
+For database you can use docker image https://hub.docker.com/_/postgres/
 
 ### Test with cURL
 

@@ -14,6 +14,8 @@ const (
 	EnvHost        = "HOST"
 	EnvPort        = "PORT"
 	EnvDatabaseURL = "DATABASE_URL"
+	EnvTLSCert     = "TLS_CERT"
+	EnvTLSKey      = "TLS_KEY"
 )
 
 type Config struct {
@@ -21,6 +23,8 @@ type Config struct {
 	Host        string
 	Port        string
 	DatabaseURL string
+	TLSCert     string
+	TLSKey      string
 }
 
 func (c *Config) SetupLogging() error {
