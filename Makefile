@@ -1,12 +1,12 @@
 .PHONY: all
-all: install-tools build start
+all: install-tools generate-certificates start
 
 .PHONY: build
 build:
 	go install .
 
 .PHONY: start
-start:
+start: build
 	goreman start
 
 .PHONY: format
@@ -62,3 +62,7 @@ PACKAGES := \
 install-tools:
 	$(foreach pkg,$(PACKAGES),go get -u $(pkg);)
 	gometalinter --install --update
+
+.PHONY: generate-certificates
+generate-certificates:
+	go run certgen/main.go

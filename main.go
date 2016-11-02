@@ -33,15 +33,15 @@ func main() {
 
 	log.Infof("Start with config: %+v", cfg)
 
-	db, err := GetDatabase(cfg.DatabaseURL)
-	if err != nil {
-		log.Fatal(trace.DebugReport(err))
-	}
+	//db, err := GetDatabase(cfg.DatabaseURL)
+	//if err != nil {
+	//log.Fatal(trace.DebugReport(err))
+	//}
 
-	log.Debugf("Connecting to database at %s", cfg.DatabaseURL)
-	if err = db.Connect(); err != nil {
-		log.Fatal(trace.DebugReport(err))
-	}
+	//log.Debugf("Connecting to database at %s", cfg.DatabaseURL)
+	//if err = db.Connect(); err != nil {
+	//log.Fatal(trace.DebugReport(err))
+	//}
 
 	router := httprouter.New()
 	router.GET("/", IndexHandler)
@@ -53,7 +53,7 @@ func main() {
 
 	errChan := make(chan error, 10)
 	go func() {
-		errChan <- httpServer.ListenAndServe()
+		errChan <- httpServer.ListenAndServeTLS("server.pem", "server-key.pem")
 	}()
 
 	signalChan := make(chan os.Signal, 1)
