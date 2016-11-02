@@ -59,7 +59,7 @@ func main() {
 		isCA:        true,
 		hosts:       []string{""},
 		keyUsage:    x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
-		extKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		extKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -75,7 +75,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Generate Server Certificates
+	// Generate Server Certificate and Key
 	hosts := make([]string, 0)
 	for _, h := range strings.Split(host, ",") {
 		if h == "" {
@@ -100,6 +100,24 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Generate Client Certificate and Key
+	clientCert, clientKey, err := generateCertificate(certificateConfig{
+		caCert:      caParsedCertificates[0],
+		caKey:       caKey,
+		hosts:       hosts,
+		keyUsage:    x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		extKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = writeCert("client", clientCert, clientKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
 
 func writeCert(name string, cert []byte, key *rsa.PrivateKey) error {
