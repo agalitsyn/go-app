@@ -13,49 +13,37 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/julienschmidt/httprouter"
 
-	"gopkg.in/alecthomas/kingpin.v2"
-
 	log "github.com/Sirupsen/logrus"
 )
 
 type WebApp struct {
-	cli     *kingpin.Application
-	server  *manners.GracefulServer
 	config  Config
+	router  *httprouter.Router
+	server  *manners.GracefulServer
 	errChan chan error
 }
 
 func NewWebApp() *WebApp {
+	router := httprouter.New()
+	router.GET("/", IndexHandler)
+	router.GET("/healthz", HealthzHandler)
+
 	return &WebApp{
-		cli:     kingpin.New("goapi", ""),
+		router:  router,
 		server:  manners.NewServer(),
 		errChan: make(chan error, 1),
 	}
 }
 
 func (app *WebApp) Start() error {
-	app.cli.Flag("log-level", "Log level.").Default("info").Envar(EnvLogLevel).StringVar(&app.config.LogLevel)
-	app.cli.Flag("host", "HTTP host.").Default("127.0.0.1").Envar(EnvHost).StringVar(&app.config.Host)
-	app.cli.Flag("port", "HTTP port.").Default("5000").Envar(EnvPort).StringVar(&app.config.Port)
-	app.cli.Flag("tls-cert", "Path to the client server TLS cert file.").Envar(EnvTLSCert).StringVar(&app.config.TLSCert)
-	app.cli.Flag("tls-key", "Path to the client server TLS key file.").Envar(EnvTLSKey).StringVar(&app.config.TLSKey)
-	app.cli.Flag("tls-ca-cert", "Path to the CAs cert file.").Envar(EnvTLSCACert).StringVar(&app.config.TLSCACert)
-	if _, err := app.cli.Parse(os.Args[1:]); err != nil {
-		return trace.Wrap(err)
-	}
-
 	if err := app.config.SetupLogging(); err != nil {
 		return trace.Wrap(err)
 	}
 
 	log.Infof("Start with config: %+v", app.config)
 
-	router := httprouter.New()
-	router.GET("/", IndexHandler)
-	router.GET("/healthz", HealthzHandler)
-
 	app.server.Addr = net.JoinHostPort(app.config.Host, app.config.Port)
-	app.server.Handler = handlers.LoggingHandler(os.Stdout, router)
+	app.server.Handler = handlers.LoggingHandler(os.Stdout, app.router)
 
 	// HTTPS
 	if app.config.TLSCert != "" && app.config.TLSKey != "" {
