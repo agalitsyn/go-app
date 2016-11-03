@@ -10,23 +10,21 @@ import (
 )
 
 const (
-	EnvLogLevel    = "LOG_LEVEL"
-	EnvHost        = "HOST"
-	EnvPort        = "PORT"
-	EnvDatabaseURL = "DATABASE_URL"
-	EnvTLSCert     = "TLS_CERT"
-	EnvTLSKey      = "TLS_KEY"
-	EnvTLSCACert   = "TLS_CA_CERT"
+	EnvLogLevel  = "LOG_LEVEL"
+	EnvHost      = "HOST"
+	EnvPort      = "PORT"
+	EnvTLSCert   = "TLS_CERT"
+	EnvTLSKey    = "TLS_KEY"
+	EnvTLSCACert = "TLS_CA_CERT"
 )
 
 type Config struct {
-	LogLevel    string
-	Host        string
-	Port        string
-	DatabaseURL string
-	TLSCert     string
-	TLSKey      string
-	TLSCACert   string
+	LogLevel  string
+	Host      string
+	Port      string
+	TLSCert   string
+	TLSKey    string
+	TLSCACert string
 }
 
 func (c *Config) SetupLogging() error {

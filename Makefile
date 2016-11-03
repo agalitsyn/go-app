@@ -1,12 +1,12 @@
 .PHONY: all
-all: install-tools generate-certificates start
+all: generate-certificates install
 
-.PHONY: build
-build:
+.PHONY: install
+install:
 	go install .
 
 .PHONY: start
-start: build
+start: install
 	goreman start
 
 .PHONY: format

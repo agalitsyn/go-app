@@ -24,17 +24,29 @@ $ cp .env.default .env
 $ vi .env
 ```
 
+### Install dev tools
+
+```
+$ make Install-tools
+```
+
 ### Build and Run
 
 ```
 $ make
+$ make start
 
 ```
+It will start web service with TLS.
 
-For database you can use docker image https://hub.docker.com/_/postgres/
+Or you can simply run `goapi` and get simple HTTP service.
 
 ### Test with cURL
 
 ```
+# https
 $ curl --cacert ./ca.pem --key ./client-key.pem --cert ./client.pem https://127.0.0.1:5000/
+
+# http
+$ curl http://127.0.0.1:5000
 ```
