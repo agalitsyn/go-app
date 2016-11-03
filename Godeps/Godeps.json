@@ -1,7 +1,7 @@
 {
 	"ImportPath": "github.com/agalitsyn/goapi",
 	"GoVersion": "go1.7",
-	"GodepVersion": "v74",
+	"GodepVersion": "v75",
 	"Deps": [
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
@@ -46,16 +46,6 @@
 			"ImportPath": "github.com/julienschmidt/httprouter",
 			"Comment": "v1.1-38-g4563b0b",
 			"Rev": "4563b0ba73e4db6c6423b60a26f3cadd2e9a1ec9"
-		},
-		{
-			"ImportPath": "github.com/lib/pq",
-			"Comment": "go1.0-cutoff-125-ga37edb8",
-			"Rev": "a37edb86214894fa6c6c3401a4c4976b02176dd3"
-		},
-		{
-			"ImportPath": "github.com/lib/pq/oid",
-			"Comment": "go1.0-cutoff-125-ga37edb8",
-			"Rev": "a37edb86214894fa6c6c3401a4c4976b02176dd3"
 		},
 		{
 			"ImportPath": "github.com/pmezard/go-difflib/difflib",
