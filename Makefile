@@ -1,5 +1,23 @@
-.PHONY: all
-all: generate-certificates install
+APPLICATION ?= $$(basename $(CURDIR))
+BUILD_DIR ?= bin
+
+all: $(BUILD_DIR)
+
+$(BUILD_DIR):
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -a -installsuffix cgo -o $(BUILD_DIR)/$(APPLICATION) .
+
+.PHONY: clean
+clean:
+	-rm -r $(BUILD_DIR)
+
+NOROOT := -u $$(id -u):$$(id -g)
+SRCDIR := /go/src/github.com/agalitsyn/$(APPLICATION)
+DOCKERFLAGS := --rm=true $(NOROOT) -v $(PWD):$(SRCDIR) -w $(SRCDIR)
+BUILDIMAGE := golang:1.7
+
+.PHONY: build
+build:
+	docker run $(DOCKERFLAGS) $(BUILDIMAGE) make clean all
 
 .PHONY: install
 install:
