@@ -27,13 +27,13 @@ $ vi .env
 ### Install dev tools
 
 ```
-$ make Install-tools
+$ make install-tools
 ```
 
 ### Build and Run
 
 ```
-$ make
+$ make generate-certificates
 $ make start
 
 ```
