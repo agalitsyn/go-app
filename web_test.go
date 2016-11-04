@@ -22,17 +22,6 @@ func doHTTPRequest(method, url string) *http.Response {
 	return response
 }
 
-func TestIndexHandler(t *testing.T) {
-	router := httprouter.New()
-	router.GET("/", IndexHandler)
-
-	srv := httptest.NewServer(router)
-	defer srv.Close()
-
-	response := doHTTPRequest("GET", srv.URL)
-	assert.Exactly(t, http.StatusOK, response.StatusCode)
-}
-
 func TestHealthzHandler(t *testing.T) {
 	router := httprouter.New()
 	router.GET("/healthz", HealthzHandler)
