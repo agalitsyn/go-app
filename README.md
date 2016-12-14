@@ -14,7 +14,7 @@ Don't use for production.
 Download:
 
 ```
-go get https://github.com/agalitsyn/goapi
+go get github.com/agalitsyn/goapi
 ```
 
 ### Review settings
