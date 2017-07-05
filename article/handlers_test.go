@@ -2,14 +2,10 @@ package article
 
 import (
 	"bytes"
-	"context"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"gitlab.2gis.ru/lab/auth"
-	"gitlab.2gis.ru/lab/pusher/middleware"
 
 	"github.com/agalitsyn/goapi/log"
 	"github.com/agalitsyn/goapi/router"
@@ -160,7 +156,6 @@ func TestPutHandler_Create(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPut, "http://example.com/1", buf)
-	req = req.WithContext(context.WithValue(req.Context(), middleware.UserContextKey, &auth.User{UserID: "12345"}))
 
 	db, mock, err := sqlmock.New()
 	if err != nil {

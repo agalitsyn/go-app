@@ -1,4 +1,3 @@
-// Package main provides 2GIS pusher binary
 package main
 
 import (
