@@ -1,1 +1,1 @@
-web: goapi
+web: webapp

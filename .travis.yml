@@ -4,13 +4,14 @@ dist: trusty
 sudo: false
 
 go:
-  - 1.7
+  - 1.8
 
 install:
   - go get github.com/alecthomas/gometalinter 
   - gometalinter --install --update
 
 script:
+  - make lint
   - make test
 
 notifications:
