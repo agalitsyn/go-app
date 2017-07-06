@@ -96,7 +96,7 @@ func deleteHandler(m *Manager, w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLogEntry(r).WithField("context", "article")
 
 	articleID := chi.URLParam(r, "articleID")
-	device, err := m.ByID(articleID)
+	article, err := m.ByID(articleID)
 	if err != nil {
 		if err == ErrNotFound {
 			logger.WithError(err).Warn()
@@ -107,7 +107,7 @@ func deleteHandler(m *Manager, w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, response.ErrUnknown(err))
 		return
 	}
-	if err := m.Delete(device); err != nil {
+	if err := m.Delete(article); err != nil {
 		logger.WithError(err).Error()
 		render.Render(w, r, response.ErrUnknown(err))
 		return
