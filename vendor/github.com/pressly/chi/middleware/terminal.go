@@ -35,7 +35,7 @@ var (
 var isTTY bool
 
 func init() {
-	// This is sort of cheating: if stdout is a character article, we assume
+	// This is sort of cheating: if stdout is a character device, we assume
 	// that means it's a TTY. Unfortunately, there are many non-TTY
 	// character devices, but fortunately stdout is rarely set to any of
 	// them.

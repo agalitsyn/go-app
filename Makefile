@@ -51,7 +51,6 @@ docker-push:
 
 # Misc
 TOOLS := \
-	github.com/mattn/goreman \
 	github.com/alecthomas/gometalinter \
 	github.com/golang/dep
 
