@@ -4,7 +4,7 @@
   go-tests = true
 
 [[constraint]]
-  name = "github.com/Sirupsen/logrus"
+  name = "github.com/sirupsen/logrus"
   version = "1.0.4"
 
 [[constraint]]
