@@ -1,9 +1,9 @@
-package router
+package handler
 
 import (
 	"net/http"
 
-	"github.com/agalitsyn/goapi/log"
+	"github.com/agalitsyn/goapi/pkg/log"
 
 	"github.com/goware/cors"
 	"github.com/pressly/chi"

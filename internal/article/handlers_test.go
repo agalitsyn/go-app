@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/agalitsyn/goapi/log"
-	"github.com/agalitsyn/goapi/router"
+	"github.com/agalitsyn/goapi/pkg/handler"
+	"github.com/agalitsyn/goapi/pkg/log"
 
 	sqlmock "gopkg.in/DATA-DOG/go-sqlmock.v1"
 )
@@ -29,7 +29,7 @@ func TestListHandler(t *testing.T) {
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "http://example.com/", nil)
 
-	r := router.New(router.WithLogging(log.New("", "", ioutil.Discard)))
+	r := handler.New(handler.WithLogging(log.New("", "", ioutil.Discard)))
 	r.Get("/", makeHandler(m, listHandler))
 	r.ServeHTTP(w, req)
 
@@ -67,7 +67,7 @@ func TestDeleteHandler(t *testing.T) {
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodDelete, "http://example.com/1", nil)
 
-	r := router.New(router.WithLogging(log.New("", "", ioutil.Discard)))
+	r := handler.New(handler.WithLogging(log.New("", "", ioutil.Discard)))
 	r.Delete("/:articleID", makeHandler(m, deleteHandler))
 	r.ServeHTTP(w, req)
 
@@ -129,7 +129,7 @@ func TestPutHandler_Update(t *testing.T) {
 
 	m := &Manager{db: db}
 
-	r := router.New(router.WithLogging(log.New("", "", ioutil.Discard)))
+	r := handler.New(handler.WithLogging(log.New("", "", ioutil.Discard)))
 	r.Put("/:articleID", makeHandler(m, putHandler))
 	r.ServeHTTP(w, req)
 
@@ -173,7 +173,7 @@ func TestPutHandler_Create(t *testing.T) {
 
 	m := &Manager{db: db}
 
-	r := router.New(router.WithLogging(log.New("", "", ioutil.Discard)))
+	r := handler.New(handler.WithLogging(log.New("", "", ioutil.Discard)))
 	r.Put("/:articleID", makeHandler(m, putHandler))
 	r.ServeHTTP(w, req)
 

@@ -1,87 +1,82 @@
 package main
 
 import (
+	"context"
 	"database/sql"
-	"net"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	flags "github.com/jessevdk/go-flags"
 	"github.com/pressly/chi"
 	migrate "github.com/rubenv/sql-migrate"
 
-	kingpin "gopkg.in/alecthomas/kingpin.v2"
+	"github.com/agalitsyn/goapi/internal/article"
+	"github.com/agalitsyn/goapi/internal/health"
 
-	"github.com/agalitsyn/goapi/article"
-	"github.com/agalitsyn/goapi/database"
-	"github.com/agalitsyn/goapi/health"
-	"github.com/agalitsyn/goapi/log"
-	"github.com/agalitsyn/goapi/middleware"
-	"github.com/agalitsyn/goapi/router"
-	"github.com/agalitsyn/goapi/service"
+	"github.com/agalitsyn/goapi/pkg/handler"
+	"github.com/agalitsyn/goapi/pkg/log"
+	"github.com/agalitsyn/goapi/pkg/postgres"
 )
+
+var version string
 
 func main() {
 	cfg := parseFlags()
-	logger := log.New(cfg.log.format, cfg.log.level, os.Stdout)
+	logger := log.New(cfg.Log.Format, cfg.Log.Level, os.Stdout)
 	logger.Infof("started with config: %+v", cfg)
 
-	logger.Info("connecting to the database")
-	db, err := initDatabase(cfg.db.dsn, logger)
+	pcfg := postgres.Config{
+		MaxConnLifetime: cfg.Postgres.MaxConnLifetimeSec,
+		MaxOpenConns:    cfg.Postgres.MaxOpenConns,
+		MaxIdleConns:    cfg.Postgres.MaxIdleConns,
+	}
+	db, err := initDatabase(cfg.Postgres.URL, logger, pcfg)
 	if err != nil {
 		logger.WithError(err).Fatal()
 	}
+	defer db.Close()
 
-	appRoutes, err := makeRoutes(db.DB, cfg.docsPath)
+	appRoutes, err := makeRoutes(db.DB, cfg.DocsPath)
 	if err != nil {
 		logger.WithError(err).Fatal()
 	}
-
 	// note: order of middlewares is important
-	r := router.New(
-		router.WithRequestID(),
-		router.WithRealIP(),
-		router.WithLogging(logger),
-		router.WithRecover(),
-		router.WithCORS(cfg.http.allowedOrigins, cfg.http.allowedHeaders, cfg.http.exposedHeaders),
+	h := handler.New(
+		handler.WithRequestID(),
+		handler.WithRealIP(),
+		handler.WithLogging(logger),
+		handler.WithRecover(),
+		handler.WithCORS(cfg.HTTP.AllowedOrigins, cfg.HTTP.AllowedHeaders, cfg.HTTP.ExposedHeaders),
 		appRoutes,
 	)
+	srv := &http.Server{Addr: cfg.HTTP.Addr, Handler: h}
 
-	addr := net.JoinHostPort("", cfg.http.port)
-	srv := service.New(addr, r)
-
-	signalChan := make(chan os.Signal, 1)
+	sigquit := make(chan os.Signal, 1)
 	signal.Ignore(syscall.SIGHUP, syscall.SIGPIPE)
-	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(sigquit, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
-		s := <-signalChan
-		logger.Infof("captured %v, exiting", s)
-		health.SetReadinessStatus(http.StatusServiceUnavailable)
+		s := <-sigquit
+		logger.Infof("captured %v, exiting...", s)
 
-		db.Logger.Info("disconnecting from the database")
-		db.Close()
-
-		logger.Info("shutdown server")
-		srv.Stop()
-
-		switch s {
-		case syscall.SIGINT:
-			os.Exit(130)
-		case syscall.SIGTERM:
-			os.Exit(0)
+		logger.Info("gracefully shutdown server")
+		if err := srv.Shutdown(context.Background()); err != nil {
+			logger.WithError(err).Error("could not shutdown server")
 		}
 	}()
 
 	logger.Info("starting http service...")
-	logger.Infof("listening on %s", addr)
-	if err = srv.Start(); err != nil {
-		logger.WithError(err).Fatal()
+	logger.Infof("listening on %s", cfg.HTTP.Addr)
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		logger.WithError(err).Error("server error")
 	}
 }
 
-func initDatabase(dsn string, logger log.Logger) (*database.Database, error) {
-	db, err := database.New(dsn, logger)
+func initDatabase(dsn string, logger log.Logger, pcfg postgres.Config) (*postgres.Database, error) {
+	db, err := postgres.New(dsn, logger, pcfg)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +89,6 @@ func initDatabase(dsn string, logger log.Logger) (*database.Database, error) {
 	return db, nil
 }
 
-// makeMigrations holds application-level migrations list
 func makeMigrations() *migrate.MemoryMigrationSource {
 	var migrations []*migrate.Migration
 
@@ -105,83 +99,59 @@ func makeMigrations() *migrate.MemoryMigrationSource {
 	}
 }
 
-// makeRoutes holds application-level routes
-func makeRoutes(db *sql.DB, docsDir string) (router.Option, error) {
+func makeRoutes(db *sql.DB, docsDir string) (handler.Option, error) {
 	articleManager := article.NewManager(db)
 
-	return func(r *router.Router) {
+	return func(r *handler.Router) {
 		r.FileServer("/docs", http.Dir(docsDir))
 		r.Mount("/readiness", health.Routes())
 
 		r.Route("/1.0", func(r chi.Router) {
-			r.Use(middleware.ApiVersion("1.0"))
-
+			r.Use(handler.ApiVersion("1.0"))
 			r.Mount("/articles", article.Routes(articleManager))
 		})
 	}, nil
 }
 
-// cliFlags is a union of the fields, which applicaton could parse from CLI args
 type cliFlags struct {
-	docsPath string
+	DocsPath string `long:"docs-path" env:"GAPI_DOCS_PATH" default:"docs" description:"Path to documentation folder."`
 
-	log struct {
-		level  string
-		format string
+	HTTP struct {
+		Addr           string   `long:"addr" env:"GAPI_HTTP_ADDR" default:"localhost:5000" description:"HTTP service address."`
+		AllowedOrigins []string `long:"allowed-origins" env:"GAPI_ALLOWED_ORIGINS" description:"The list of origins a cross-domain request can be executed from."`
+		AllowedHeaders []string `long:"allowed-headers" env:"GAPI_ALLOWED_HEADERS" description:"The list of non simple headers the client is allowed to use with cross-domain requests."`
+		ExposedHeaders []string `long:"exposed-headers" env:"GAPI_EXPOSED_ORIGINS" description:"The list which indicates which headers are safe to expose."`
 	}
 
-	http struct {
-		port           string
-		allowedOrigins []string
-		allowedHeaders []string
-		exposedHeaders []string
+	Postgres struct {
+		URL                string        `long:"postgres-url" env:"GAPI_POSTGRES_URL" default:"postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable" description:"URL to PostgreSQL database."`
+		MaxConnLifetimeSec time.Duration `long:"postgres-conn-lt" env:"GAPI_POSTGRES_MAX_CONN_LT" default:"60"`
+		MaxIdleConns       int           `long:"postgres-max-idle-conns" env:"GAPI_POSTGRES_MAX_IDLE_CONN" default:"1"`
+		MaxOpenConns       int           `long:"postgres-max-open-conn" env:"GAPI_POSTGRES_MAX_OPEN_CONN" default:"1"`
 	}
 
-	db struct {
-		dsn string
+	Log struct {
+		Level  string `long:"log-level" default:"info" choice:"debug" choice:"info" choice:"warn" choice:"error" env:"GAPI_LOG_LEVEL" description:"Log level."`
+		Format string `long:"log-format" default:"text" choice:"text" choice:"json" env:"GAPI_LOG_FORMAT" description:"Log format."`
 	}
+
+	Version bool `long:"version" description:"Show application version."`
 }
 
-// parseFlags maps CLI flags to struct
 func parseFlags() *cliFlags {
 	var cfg cliFlags
-
-	kingpin.Flag("docs-path", "Path to documentation folder.").
-		Default("docs").
-		Envar("DOCS_PATH").
-		StringVar(&cfg.docsPath)
-
-	kingpin.Flag("log-level", "Log level.").
-		Default("info").
-		Envar("LOG_LEVEL").
-		EnumVar(&cfg.log.level, "debug", "info", "warning", "error", "fatal", "panic")
-	kingpin.Flag("log-format", "Log format.").
-		Default("text").
-		Envar("LOG_FORMAT").
-		EnumVar(&cfg.log.format, "text", "json")
-
-	kingpin.Flag("port", "HTTP service port.").
-		Default("5000").
-		Envar("PORT").
-		StringVar(&cfg.http.port)
-	kingpin.Flag("allowed-origins", "The list of origins a cross-domain request can be executed from.").
-		Envar("ALLOWED_ORIGINS").
-		PlaceHolder("domain").
-		StringsVar(&cfg.http.allowedOrigins)
-	kingpin.Flag("allowed-headers", "The list of non simple headers the client is allowed to use with cross-domain requests.").
-		Envar("ALLOWED_HEADERS").
-		PlaceHolder("header").
-		StringsVar(&cfg.http.allowedHeaders)
-	kingpin.Flag("exposed-headers", "The list which indicates which headers are safe to expose.").
-		Envar("EXPOSED_HEADERS").
-		PlaceHolder("domain").
-		StringsVar(&cfg.http.exposedHeaders)
-
-	kingpin.Flag("database-url", "URL to Postgresql 9.4 database.").
-		Default("postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable&binary_parameters=yes").
-		Envar("DATABASE_URL").
-		StringVar(&cfg.db.dsn)
-
-	kingpin.Parse()
+	p := flags.NewParser(&cfg, flags.Default)
+	if _, err := p.Parse(); err != nil {
+		if flagsErr, ok := err.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
+			os.Exit(0)
+		} else {
+			fmt.Fprintln(os.Stderr, flagsErr.Error())
+			os.Exit(1)
+		}
+	}
+	if cfg.Version {
+		fmt.Fprintln(os.Stdout, version)
+		os.Exit(0)
+	}
 	return &cfg
 }

@@ -5,7 +5,10 @@
 ## Quickstart
 
 ```bash
-$ cp .env.default .env
-$ make infra-start # will start database
-$ make start
+$ docker-compose start -d # will start database
+$ make install && goapi
+
+# test it
+$ curl -X PUT localhost:5000/1.0/articles/1 --data '{"title": "new book", "slug": "new-book"}'
+$ curl  localhost:5000/1.0/articles
 ```

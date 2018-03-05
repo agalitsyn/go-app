@@ -1,15 +1,15 @@
-package database
+package postgres
 
 import (
 	"database/sql"
-
-	"github.com/agalitsyn/goapi/log"
-
 	"time"
 
 	_ "github.com/lib/pq"
+
 	"github.com/pkg/errors"
 	migrate "github.com/rubenv/sql-migrate"
+
+	"github.com/agalitsyn/goapi/pkg/log"
 )
 
 type Database struct {
@@ -17,11 +17,21 @@ type Database struct {
 	Logger log.Logger
 }
 
-func New(dsn string, logger log.Logger) (*Database, error) {
+type Config struct {
+	MaxConnLifetime time.Duration
+	MaxIdleConns    int
+	MaxOpenConns    int
+}
+
+func New(dsn string, logger log.Logger, cfg Config) (*Database, error) {
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not open database")
 	}
+	db.SetConnMaxLifetime(cfg.MaxConnLifetime)
+	db.SetMaxIdleConns(cfg.MaxIdleConns)
+	db.SetMaxOpenConns(cfg.MaxOpenConns)
+
 	return &Database{
 		DB:     db,
 		Logger: logger,

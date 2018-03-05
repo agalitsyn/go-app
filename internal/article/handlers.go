@@ -7,8 +7,8 @@ import (
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/render"
 
-	"github.com/agalitsyn/goapi/log"
-	"github.com/agalitsyn/goapi/response"
+	"github.com/agalitsyn/goapi/pkg/handler"
+	"github.com/agalitsyn/goapi/pkg/log"
 )
 
 func Routes(m *Manager) chi.Router {
@@ -38,12 +38,12 @@ func listHandler(m *Manager, w http.ResponseWriter, r *http.Request) {
 	articles, err := m.All()
 	if err != nil {
 		logger.WithError(err).Error()
-		render.Render(w, r, response.ErrUnknown(err))
+		render.Render(w, r, handler.ErrUnknown(err))
 		return
 	}
 	if err := render.RenderList(w, r, newArticleListResponse(articles)); err != nil {
 		logger.WithError(err).Error()
-		render.Render(w, r, response.ErrUnknown(err))
+		render.Render(w, r, handler.ErrUnknown(err))
 		return
 	}
 }
@@ -54,7 +54,7 @@ func putHandler(m *Manager, w http.ResponseWriter, r *http.Request) {
 	var data articleRequest
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		logger.WithError(err).Warn()
-		render.Render(w, r, response.ErrBadRequest(err))
+		render.Render(w, r, handler.ErrBadRequest(err))
 		return
 	}
 
@@ -62,7 +62,7 @@ func putHandler(m *Manager, w http.ResponseWriter, r *http.Request) {
 	article, err := m.ByID(articleID)
 	if err != nil && err != ErrNotFound {
 		logger.WithError(err).Error()
-		render.Render(w, r, response.ErrUnknown(err))
+		render.Render(w, r, handler.ErrUnknown(err))
 		return
 	}
 	if article == nil {
@@ -73,7 +73,7 @@ func putHandler(m *Manager, w http.ResponseWriter, r *http.Request) {
 		}
 		if err := m.Save(d); err != nil {
 			logger.WithError(err).Error()
-			render.Render(w, r, response.ErrUnknown(err))
+			render.Render(w, r, handler.ErrUnknown(err))
 			return
 		}
 
@@ -84,7 +84,7 @@ func putHandler(m *Manager, w http.ResponseWriter, r *http.Request) {
 		article.Slug = data.Slug
 		if err := m.Update(article); err != nil {
 			logger.WithError(err).Error()
-			render.Render(w, r, response.ErrUnknown(err))
+			render.Render(w, r, handler.ErrUnknown(err))
 			return
 		}
 
@@ -100,16 +100,16 @@ func deleteHandler(m *Manager, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err == ErrNotFound {
 			logger.WithError(err).Warn()
-			render.Render(w, r, response.ErrNotFound(err))
+			render.Render(w, r, handler.ErrNotFound(err))
 			return
 		}
 		logger.WithError(err).Error()
-		render.Render(w, r, response.ErrUnknown(err))
+		render.Render(w, r, handler.ErrUnknown(err))
 		return
 	}
 	if err := m.Delete(article); err != nil {
 		logger.WithError(err).Error()
-		render.Render(w, r, response.ErrUnknown(err))
+		render.Render(w, r, handler.ErrUnknown(err))
 		return
 	}
 	render.NoContent(w, r)

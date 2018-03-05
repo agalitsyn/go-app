@@ -1,4 +1,4 @@
-package middleware
+package handler
 
 import (
 	"io/ioutil"
@@ -6,12 +6,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/agalitsyn/goapi/log"
-	"github.com/agalitsyn/goapi/router"
+	"github.com/agalitsyn/goapi/pkg/log"
 )
 
 func TestApiVersion(t *testing.T) {
-	r := router.New(router.WithLogging(log.New("", "", ioutil.Discard)))
+	r := New(WithLogging(log.New("", "", ioutil.Discard)))
 	r.Use(ApiVersion("v1"))
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		v, ok := r.Context().Value(ApiVersionContextKey).(string)
