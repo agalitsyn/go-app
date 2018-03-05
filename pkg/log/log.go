@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/pressly/chi/middleware"
+	"github.com/go-chi/chi/middleware"
 )
 
 // Logger provides closest to stdlib log.Logger interface

@@ -19,8 +19,6 @@ func (mws Middlewares) HandlerFunc(h http.HandlerFunc) http.Handler {
 	return &ChainHandler{mws, h, chain(mws, h)}
 }
 
-// ChainHandler is a http.Handler with support for handler composition and
-// execution.
 type ChainHandler struct {
 	Middlewares Middlewares
 	Endpoint    http.Handler

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/pressly/chi"
-	"github.com/pressly/chi/render"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/render"
 
 	"github.com/agalitsyn/goapi/pkg/handler"
 	"github.com/agalitsyn/goapi/pkg/log"

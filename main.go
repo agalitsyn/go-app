@@ -10,8 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-chi/chi"
 	flags "github.com/jessevdk/go-flags"
-	"github.com/pressly/chi"
 	migrate "github.com/rubenv/sql-migrate"
 
 	"github.com/agalitsyn/goapi/internal/article"
@@ -40,10 +40,6 @@ func main() {
 	}
 	defer db.Close()
 
-	appRoutes, err := makeRoutes(db.DB, cfg.DocsPath)
-	if err != nil {
-		logger.WithError(err).Fatal()
-	}
 	// note: order of middlewares is important
 	h := handler.New(
 		handler.WithRequestID(),
@@ -51,8 +47,11 @@ func main() {
 		handler.WithLogging(logger),
 		handler.WithRecover(),
 		handler.WithCORS(cfg.HTTP.AllowedOrigins, cfg.HTTP.AllowedHeaders, cfg.HTTP.ExposedHeaders),
-		appRoutes,
+		makeRoutes(db.DB, cfg.DocsPath),
 	)
+
+	// h := chi.NewRouter()
+	// h.Mount("/asdf", health.Routes())
 	srv := &http.Server{Addr: cfg.HTTP.Addr, Handler: h}
 
 	sigquit := make(chan os.Signal, 1)
@@ -61,6 +60,8 @@ func main() {
 	go func() {
 		s := <-sigquit
 		logger.Infof("captured %v, exiting...", s)
+
+		health.SetReadinessStatus(http.StatusServiceUnavailable)
 
 		logger.Info("gracefully shutdown server")
 		if err := srv.Shutdown(context.Background()); err != nil {
@@ -99,7 +100,7 @@ func makeMigrations() *migrate.MemoryMigrationSource {
 	}
 }
 
-func makeRoutes(db *sql.DB, docsDir string) (handler.Option, error) {
+func makeRoutes(db *sql.DB, docsDir string) handler.Option {
 	articleManager := article.NewManager(db)
 
 	return func(r *handler.Router) {
@@ -110,7 +111,7 @@ func makeRoutes(db *sql.DB, docsDir string) (handler.Option, error) {
 			r.Use(handler.ApiVersion("1.0"))
 			r.Mount("/articles", article.Routes(articleManager))
 		})
-	}, nil
+	}
 }
 
 type cliFlags struct {

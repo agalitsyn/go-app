@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"github.com/pressly/chi/render"
+	"github.com/go-chi/chi/render"
 )
 
 // ErrResponse renderer type for handling all sorts of errors.

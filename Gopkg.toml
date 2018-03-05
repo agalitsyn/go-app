@@ -24,7 +24,7 @@
   version = "0.8.0"
 
 [[constraint]]
-  name = "github.com/pressly/chi"
+  name = "github.com/go-chi/chi"
   version = "3.0.0"
 
 [[constraint]]

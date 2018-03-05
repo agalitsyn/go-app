@@ -2,13 +2,14 @@ package handler
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/agalitsyn/goapi/pkg/log"
 
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/render"
 	"github.com/goware/cors"
-	"github.com/pressly/chi"
-	"github.com/pressly/chi/middleware"
-	"github.com/pressly/chi/render"
 )
 
 // Router represents HTTP route multiplexer
@@ -63,6 +64,24 @@ func WithCORS(allowedOrigins, allowedHeaders, exposedHeaders []string) Option {
 		})
 		r.Use(m.Handler)
 	}
+}
+
+func (r *Router) FileServer(path string, root http.FileSystem) {
+	if strings.ContainsAny(path, "{}*") {
+		panic("FileServer does not permit URL parameters.")
+	}
+
+	fs := http.StripPrefix(path, http.FileServer(root))
+
+	if path != "/" && path[len(path)-1] != '/' {
+		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
+		path += "/"
+	}
+	path += "*"
+
+	r.Get(path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fs.ServeHTTP(w, r)
+	}))
 }
 
 func newStructuredLogger(logger log.Logger) func(next http.Handler) http.Handler {

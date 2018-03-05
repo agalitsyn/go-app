@@ -3,7 +3,7 @@ package health
 import (
 	"net/http"
 
-	"github.com/pressly/chi"
+	"github.com/go-chi/chi"
 )
 
 func Routes() chi.Router {
