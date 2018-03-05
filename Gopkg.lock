@@ -4,40 +4,41 @@
 [[projects]]
   name = "github.com/Sirupsen/logrus"
   packages = ["."]
-  revision = "10f801ebc38b33738c9d17d50860f484a0988ff5"
+  revision = "d682213848ed68c0a260ca37d6dd5ace8423f5ba"
+  version = "v1.0.4"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/alecthomas/template"
-  packages = [
-    ".",
-    "parse"
-  ]
-  revision = "a0175ee3bccc567396460bf5acd36800cb10c49c"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/alecthomas/units"
+  name = "github.com/go-chi/chi"
   packages = ["."]
-  revision = "2efee857e7cfd4f3d0138cc3cbb1b4966962b93a"
+  revision = "e83ac2304db3c50cf03d96a2fcd39009d458bc35"
+  version = "v3.3.2"
 
 [[projects]]
   name = "github.com/goware/cors"
   packages = ["."]
-  revision = "6ad15f4e1489e41776ee8b008597eafea9a67fd9"
+  revision = "dba6525398619dead495962a916728e7ee2ca322"
+  version = "v1.0.0"
 
 [[projects]]
+  name = "github.com/jessevdk/go-flags"
+  packages = ["."]
+  revision = "96dc06278ce32a0e9d957d590bb987c81ee66407"
+  version = "v1.3.0"
+
+[[projects]]
+  branch = "master"
   name = "github.com/lib/pq"
   packages = [
     ".",
     "oid"
   ]
-  revision = "2704adc878c21e1329f46f6e56a1c387d788ff94"
+  revision = "88edab0803230a3898347e77b474f8c1820a1f20"
 
 [[projects]]
   name = "github.com/pkg/errors"
   packages = ["."]
-  revision = "ff09b135c25aae272398c51a07235b90a75aa4f0"
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
 
 [[projects]]
   name = "github.com/pressly/chi"
@@ -46,33 +47,38 @@
     "middleware",
     "render"
   ]
-  revision = "5f645ae32b572998bed8ceaf80318569ef3b69fc"
+  revision = "967844826e58cf31213a7dfb82455d242ad85101"
+  version = "v3.0.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/rubenv/sql-migrate"
   packages = [
     ".",
     "sqlparse"
   ]
-  revision = "38004e7a77f2b350ea8467038dca66073d907725"
+  revision = "081fe17d19ff4e2dd9f5a0c1158e6bcf74da6906"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  revision = "91a49db82a88618983a78a06c1cbd4e00ab749ab"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
-  packages = ["unix"]
-  revision = "37707fdb30a5b38865cfb95e5aab41707daec7fd"
+  packages = [
+    "unix",
+    "windows"
+  ]
+  revision = "dd2ff4accc098aceecb86b36eaa7829b2a17b1c9"
 
 [[projects]]
   name = "gopkg.in/DATA-DOG/go-sqlmock.v1"
   packages = ["."]
-  revision = "b983233bc0bbea4dc6e8ec8c8c923d935765ffec"
-  version = "v1.2.0"
-
-[[projects]]
-  name = "gopkg.in/alecthomas/kingpin.v2"
-  packages = ["."]
-  revision = "7f0871f2e17818990e4eed73f9b5c2f429501228"
-  version = "v2.2.4"
+  revision = "d76b18b42f285b792bf985118980ce9eacea9d10"
+  version = "v1.3.0"
 
 [[projects]]
   name = "gopkg.in/gorp.v1"
@@ -83,6 +89,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7de0d3f0238f2f98e71c8176b0fbd43354172c4049bb0fb35152a186c04f9b32"
+  inputs-digest = "18bb36dcf0a3238534cb79907a3b7e8061d41b7b12c04826522322259c9d1534"
   solver-name = "gps-cdcl"
   solver-version = 1
