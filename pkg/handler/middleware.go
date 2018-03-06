@@ -3,6 +3,9 @@ package handler
 import (
 	"context"
 	"net/http"
+
+	"github.com/agalitsyn/goapi/pkg/log"
+	"github.com/go-chi/chi/middleware"
 )
 
 type contextKey string
@@ -16,4 +19,12 @@ func ApiVersion(version string) func(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 		})
 	}
+}
+
+func RequestLogger(logger log.Logger) func(next http.Handler) http.Handler {
+	l, ok := logger.(middleware.LogFormatter)
+	if !ok {
+		return middleware.Logger
+	}
+	return middleware.RequestLogger(l)
 }

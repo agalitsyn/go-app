@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"net/http"
 	"os"
@@ -11,6 +10,8 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"github.com/goware/cors"
 	flags "github.com/jessevdk/go-flags"
 	migrate "github.com/rubenv/sql-migrate"
 
@@ -39,20 +40,32 @@ func main() {
 		logger.WithError(err).Fatal()
 	}
 	defer db.Close()
+	articleManager := article.NewManager(db.DB)
 
+	cm := cors.New(cors.Options{
+		AllowedOrigins:   cfg.HTTP.AllowedOrigins,
+		AllowedHeaders:   cfg.HTTP.AllowedHeaders,
+		ExposedHeaders:   cfg.HTTP.ExposedHeaders,
+		AllowedMethods:   []string{http.MethodGet, http.MethodPut, http.MethodDelete},
+		AllowCredentials: true,
+	})
 	// note: order of middlewares is important
-	h := handler.New(
-		handler.WithRequestID(),
-		handler.WithRealIP(),
-		handler.WithLogging(logger),
-		handler.WithRecover(),
-		handler.WithCORS(cfg.HTTP.AllowedOrigins, cfg.HTTP.AllowedHeaders, cfg.HTTP.ExposedHeaders),
-		makeRoutes(db.DB, cfg.DocsPath),
+	r := chi.NewRouter()
+	r.Use(
+		middleware.RequestID,
+		middleware.RealIP,
+		handler.RequestLogger(logger),
+		middleware.Recoverer,
+		cm.Handler,
 	)
-
-	// h := chi.NewRouter()
-	// h.Mount("/asdf", health.Routes())
-	srv := &http.Server{Addr: cfg.HTTP.Addr, Handler: h}
+	r.Mount("/readiness", health.Routes())
+	r.Route("/1.0", func(r chi.Router) {
+		r.Use(handler.ApiVersion("1.0"))
+		// TODO: add urls from packages here
+		r.Mount("/articles", article.Routes(articleManager))
+	})
+	handler.FileServer(r, "/docs", http.Dir(cfg.DocsPath))
+	srv := &http.Server{Addr: cfg.HTTP.Addr, Handler: r}
 
 	sigquit := make(chan os.Signal, 1)
 	signal.Ignore(syscall.SIGHUP, syscall.SIGPIPE)
@@ -77,6 +90,11 @@ func main() {
 }
 
 func initDatabase(dsn string, logger log.Logger, pcfg postgres.Config) (*postgres.Database, error) {
+	migrations := []*migrate.Migration{}
+	// TODO: add migrations from packages here
+	migrations = append(migrations, article.Migrations()...)
+	ms := &migrate.MemoryMigrationSource{Migrations: migrations}
+
 	db, err := postgres.New(dsn, logger, pcfg)
 	if err != nil {
 		return nil, err
@@ -84,34 +102,10 @@ func initDatabase(dsn string, logger log.Logger, pcfg postgres.Config) (*postgre
 	if err := db.Connect(); err != nil {
 		return nil, err
 	}
-	if err := db.Migrate(makeMigrations()); err != nil {
+	if err := db.Migrate(ms); err != nil {
 		return nil, err
 	}
 	return db, nil
-}
-
-func makeMigrations() *migrate.MemoryMigrationSource {
-	var migrations []*migrate.Migration
-
-	migrations = append(migrations, article.Migrations()...)
-
-	return &migrate.MemoryMigrationSource{
-		Migrations: migrations,
-	}
-}
-
-func makeRoutes(db *sql.DB, docsDir string) handler.Option {
-	articleManager := article.NewManager(db)
-
-	return func(r *handler.Router) {
-		r.FileServer("/docs", http.Dir(docsDir))
-		r.Mount("/readiness", health.Routes())
-
-		r.Route("/1.0", func(r chi.Router) {
-			r.Use(handler.ApiVersion("1.0"))
-			r.Mount("/articles", article.Routes(articleManager))
-		})
-	}
 }
 
 type cliFlags struct {
