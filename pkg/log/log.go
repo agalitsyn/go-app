@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Logger provides closest to stdlib log.Logger interface
+// Logger generalizes the Logger types
 type Logger interface {
 	logrus.FieldLogger
 }
