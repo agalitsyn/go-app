@@ -1,10 +1,10 @@
-# Sample golang RESTful Web API
+# Sample RESTful Web API using Go
 
 ## Quickstart
 
 ```bash
 $ make docker-build
-$ docker-compose up # will start database
+$ docker-compose up
 
 # test it
 $ curl -i -X PUT localhost:8080/1.0/articles/1 --data '{"title": "new book", "slug": "new-book"}'
