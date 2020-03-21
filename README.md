@@ -1,4 +1,13 @@
-# Sample RESTful Web API using Go
+# Go API
+
+Example of RESTful API written in Go.
+
+Purpose was to make kind of copy&paste template for other projects. But this is outdated, actually I wrote differently in Go nowadays. What should be fixed:
+* Migrate from `github.com/lib/pq` to `github.com/jackc/pgx`
+* Add `github.com/jmoiron/sqlx`
+* Move all shared packages off root folder
+* Keep specific packages in `cmd/internal`
+* Maybe add swagger
 
 ## Quickstart
 
