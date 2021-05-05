@@ -2,28 +2,30 @@ version: '3'
 
 services:
   api:
-    image: agalitsyn/goapi:latest
+    image: agalitsyn/go-app:latest
     command:
       - api
     environment:
-      API_HTTP_ADDR: 0.0.0.0:5000
-      API_LOG_LEVEL: debug
-      API_LOG_FORMAT: text
-      API_POSTGRES_URL: postgres://goapi:goapi@postgres/goapi?sslmode=disable
+      HTTP_ADDR: 0.0.0.0:8080
+      LOG_LEVEL: debug
+      LOG_FORMAT: text
+      POSTGRES_URL: postgres://go-app:go-app@postgres/go-app?sslmode=disable
     ports:
-      - 8080:5000
+      - 8080:8080
 
   postgres:
-    image: postgres:10.6
+    image: postgres:12
     volumes:
       - postgres_backup:/data/postgres/backup
       - postgres_data:/var/lib/postgresql/data/pgdata
     environment:
-      POSTGRES_DB: goapi
-      POSTGRES_USER: goapi
-      POSTGRES_PASSWORD: goapi
+      POSTGRES_DB: go-app
+      POSTGRES_USER: go-app
+      POSTGRES_PASSWORD: go-app
       PGDATA: /var/lib/postgresql/data/pgdata
-    restart: always
+    ports:
+      - 55432:5432
+    restart: unless-stopped
 
 volumes:
   postgres_backup: {}

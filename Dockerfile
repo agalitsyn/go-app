@@ -1,20 +1,24 @@
-FROM golang:1.13-stretch AS build
-WORKDIR /src/github.com/agalitsyn/goapi
+FROM golang:1.16 as builder
+
+ENV GOBIN=/go/src/app/bin
+
+WORKDIR /go/src/app
+
 ADD . .
 RUN make
 
 
-FROM debian:stretch
+FROM debian:buster
 
 ENV DEBIAN_FRONTEND=noninteractive \
     TERM=xterm
 
-MAINTAINER agalitsyn
+RUN apt-get update && \
+    apt-get install --yes --no-install-recommends \
+        ca-certificates && \
+    apt-get clean
 
-LABEL name=goapi
-LABEL version=1.0.0
-LABEL architecrture=amd64
-LABEL source="https://github.com/agalitsyn/goapi.git"
+COPY --from=builder /go/src/app/bin/api /usr/local/bin/api
+COPY ./docs /usr/local/share/doc/go-app
 
-COPY --from=build /src/github.com/agalitsyn/goapi/bin /usr/local/bin
-COPY ./docs /usr/local/share/doc/goapi
+CMD ["api"]

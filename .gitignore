@@ -18,6 +18,7 @@
 .vscode
 
 # Project specific
-.env
+.env.local
 docker-compose.override.yml
 bin
+vendor
