@@ -8,9 +8,9 @@ require (
 	github.com/go-chi/render v1.0.0
 	github.com/golangci/golangci-lint v1.39.0
 	github.com/goware/cors v1.0.0
-	github.com/jackc/pgx/v4 v4.11.0
+	github.com/jackc/pgx/v4 v4.18.2
 	github.com/jackc/tern v1.12.4
 	github.com/jessevdk/go-flags v1.3.0
 	github.com/sirupsen/logrus v1.8.1
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.8.1
 )
